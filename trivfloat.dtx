@@ -3,13 +3,24 @@
 % Copyright (C) 2007 by
 %    Joseph Wright <joseph.wright@morningstar2.co.uk>
 %
-% Released under the GNU General Public License v2
-% See http://www.gnu.org/licenses/gpl.txt
+% This work may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either
+% version 1.3 of this license or (at your option) any later
+% version. The latest version of this license is in
+%    http://www.latex-project.org/lppl.txt
+% and version 1.3 or later is part of all distributions of
+% LaTeX version 2003/12/01 or later.
 %
-% This work consists of the main source file chemextra.dtx
-% and the derived files
+% This work has the LPPL maintenance status ``maintained.''
+%
+% The current maintainer of this work is Joseph Wright.
+%
+% This work consists of the main source files trivfloat.dtx
+% and trivfloat.ins and the derived files trivfloat.sty and
+% trivfloat.pdf.
 %
 %<*driver>
+\PassOptionsToClass{a4paper}{article}
 \documentclass{ltxdoc}
 \EnableCrossrefs
 \CodelineIndex
@@ -18,18 +29,28 @@
 \usepackage[T1]{fontenc}
 \usepackage[english,UKenglish]{babel}
 \usepackage{mathpazo,booktabs,array,url,graphicx,courier,unitsdef}
-\usepackage{upgreek}
+\usepackage{upgreek,ifpdf}
 \usepackage[scaled=0.95]{helvet}
 \usepackage[version=3]{mhchem}
 \usepackage[final]{microtype}
+% Some tricks from Heiko Oberdiek
+\ifpdf
+  \usepackage{embedfile}
+  \embedfile[%
+    stringmethod=escape,%
+    mimetype=plain/text,%
+    desc={LaTeX docstrip source archive for package `\jobname'}%
+    ]{\jobname.dtx}
+\fi
 \usepackage{\jobname}
+\usepackage[numbered]{hypdoc}
 \begin{document}
   \DocInput{\jobname.dtx}
 \end{document}
 %</driver>
 % \fi
 %
-% \CheckSum{239}
+% \CheckSum{240}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -54,6 +75,8 @@
 %   options}
 %\changes{v1.2}{2007/08/20}{Added \texttt{memoir} support}
 %\changes{v1.2}{2007/08/20}{Improved emulation of default floats}
+%\changes{v1.3b}{2007/09/20}{Fixed error with \texttt{hyperref}}
+%\changes{v1.3b}{2007/09/20}{Licence changed from GPL to LPPL}
 %
 % \DoNotIndex{\@arabic,\@chapter,\@gobble,\@ifclassloaded,\@ne}
 % \DoNotIndex{\@onlypreamble,\@smemfront,\@smemmain,\@uclclist}
@@ -86,6 +109,10 @@
 % float types in LaTeX.  A single command sets up a new float in the
 % same style as the LaTeX kernel |figure| and |table| float types.
 %\end{abstract}
+%
+%\begin{multicols}{2}
+%\tableofcontents
+%\end{multicols}
 %
 %\section{Introduction}
 %
@@ -212,7 +239,7 @@
 %    \begin{macrocode}
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{trivfloat}
-  [2007/08/22 v1.3a Quick floats in LaTeX]
+  [2007/09/20 v1.3b Quick floats in LaTeX]
 %    \end{macrocode}
 % |memoir| has its own \cmd{\newfloat} mechanism, and so |float| is
 % used only if |memoir| is not loaded.
@@ -370,10 +397,11 @@
 %\changes{v1.3}{2007/08/21}{Removed redundant numeral-based code}
 %    \begin{macrocode}
 \newcommand*{\trivfloat}[1]{%
-  \advance\tfl@floatcount\@ne%
-  \tfl@genext%
-  \PackageInfo{trivfloat}%
-    {Listing all ``#1'' floats in \jobname.\tfl@ext}%
+  \AtBeginDocument{%
+    \advance\tfl@floatcount\@ne%
+    \tfl@genext%
+    \PackageInfo{trivfloat}%
+      {Listing all ``#1'' floats in \jobname.\tfl@ext}%
 %    \end{macrocode}
 % The first step for forming a new float type is to create the
 % \texttt{\textbackslash \meta{float}name} and
@@ -383,60 +411,60 @@
 %\changes{v1.3}{2007/08/21}{Use \cs{newcommand*} for ``name''
 %  commands}
 %    \begin{macrocode}
-  \expandafter\newcommand\expandafter*\expandafter%
-    {\csname #1name\endcsname}
-    {\noexpand\tfl@upperfirst#1}
-  \expandafter\newcommand\expandafter*\expandafter%
-    {\csname list#1name\endcsname}
-      {List of \noexpand\tfl@upperfirst#1s}
-  \begingroup%
-  \edef\x{\endgroup%
+    \expandafter\newcommand\expandafter*\expandafter%
+      {\csname #1name\endcsname}
+      {\noexpand\tfl@upperfirst#1}
+    \expandafter\newcommand\expandafter*\expandafter%
+      {\csname list#1name\endcsname}
+        {List of \noexpand\tfl@upperfirst#1s}
+    \begingroup%
+    \edef\x{\endgroup%
 %    \end{macrocode}
 %\changes{v1.2}{2007/08/20}{Added \texttt{memoir}-specific code}
 % The |memoir|-dependent code now occurs.  The case when |memoir|
 % is in use is handled first.
 %    \begin{macrocode}
-    \@ifclassloaded{memoir}
-      {\noexpand\newfloat[chapter]{#1}{\tfl@ext}
-        {\csname #1name\endcsname}
-      \noexpand\newlistof{listof#1s}{\tfl@ext}
-        {\csname list#1name\endcsname}
+      \@ifclassloaded{memoir}
+        {\noexpand\newfloat[chapter]{#1}{\tfl@ext}
+          {\csname #1name\endcsname}
+        \noexpand\newlistof{listof#1s}{\tfl@ext}
+          {\csname list#1name\endcsname}
 %    \end{macrocode}
 % The following deals with the vertical space in list of float tables
 % that occurs between each chapter.
 %    \begin{macrocode}
-      \noexpand\addtodef{\noexpand\insertchapterspace}{}%
-        {\noexpand\addtocontents%
-          {\tfl@ext}
-          {\noexpand\protect\noexpand\addvspace{10pt}}}
-      \noexpand\newlistentry[chapter]{#1}
-        {\tfl@ext}{0}}
+        \noexpand\addtodef{\noexpand\insertchapterspace}{}%
+          {\noexpand\addtocontents%
+            {\tfl@ext}
+            {\noexpand\protect\noexpand\addvspace{10pt}}}
+        \noexpand\newlistentry[chapter]{#1}
+          {\tfl@ext}{0}}
 %    \end{macrocode}
 % The creation of new floats needs to know if the document class is
 % using chapters, when |memoir| is not in use.
 %\changes{v1.2}{2007/08/20}{Added chapter detection}
 %    \begin{macrocode}
-      {\ifx\chapter\@undefined
-        \noexpand\newfloat{#1}{tbp}{\tfl@ext}
-      \else
-        \noexpand\newfloat{#1}{tbp}{\tfl@ext}[chapter]
-      \fi
+        {\ifx\chapter\@undefined
+          \noexpand\newfloat{#1}{tbp}{\tfl@ext}
+        \else
+          \noexpand\newfloat{#1}{tbp}{\tfl@ext}[chapter]
+        \fi
 %    \end{macrocode}
 %\changes{v1.2}{2007/08/20}{Removed auxiliary macro \cs{tfl@list}}
 % The naming of floats for captions and generation of a list of
 % floats is now handled.
 %    \begin{macrocode}
-      \noexpand\floatname{#1}{\csname #1name\endcsname}%
-      \noexpand\newcommand{\csname listof#1s\endcsname}%
-        {\noexpand\listof{#1}{\csname list#1name\endcsname}}%
-      \ifx\chapter\@undefined\else
-        \noexpand\g@addto@macro{\noexpand\tfl@chapter@hook}
-          {\noexpand\addtocontents%
-            {\tfl@ext}
-            {\noexpand\protect\noexpand\addvspace{10pt}}}
-      \fi}
-    }%
-  \x%
+        \noexpand\floatname{#1}{\csname #1name\endcsname}%
+        \noexpand\newcommand{\csname listof#1s\endcsname}%
+          {\noexpand\listof{#1}{\csname list#1name\endcsname}}%
+        \ifx\chapter\@undefined\else
+          \noexpand\g@addto@macro{\noexpand\tfl@chapter@hook}
+            {\noexpand\addtocontents%
+              {\tfl@ext}
+              {\noexpand\protect\noexpand\addvspace{10pt}}}
+        \fi}
+      }%
+    \x%
 %    \end{macrocode}
 % Except for \textsc{koma}-Script, all of the supported document
 % classes need some further hacks to get behaviour equivalent to the
@@ -446,33 +474,34 @@
 % \cmd{\@ifclassloaded} can be used as |\iftfl@memoir| leads to |\if|
 % nesting errors.
 %    \begin{macrocode}
-  \@ifclassloaded{memoir}
-    {\expandafter\renewcommand\expandafter{\csname the#1\endcsname}%
-      {\thechapter.\expandafter\@arabic\csname c@#1\endcsname}
-    \addtodef{\@smemfront}{}{\counterwithout{#1}{chapter}}
-    \addtodef{\@smemmain}{}{%
-      \ifartopt\else
-        \counterwithin{#1}{chapter}
-      \fi}
-    \addtodef{\backmatter}{}{%
-      \ifartopt\else
+    \@ifclassloaded{memoir}
+      {\expandafter\renewcommand\expandafter{\csname the#1\endcsname}%
+        {\thechapter.\expandafter\@arabic\csname c@#1\endcsname}
+      \addtodef{\@smemfront}{}{\counterwithout{#1}{chapter}}
+      \addtodef{\@smemmain}{}{%
+        \ifartopt\else
+          \counterwithin{#1}{chapter}
+        \fi}
+      \addtodef{\backmatter}{}{%
+        \ifartopt\else
+          \counterwithout{#1}{chapter}
+          \setcounter{#1}{0}
+        \fi}
+      \ifartopt
         \counterwithout{#1}{chapter}
-        \setcounter{#1}{0}
-      \fi}
-    \ifartopt
-      \counterwithout{#1}{chapter}
-    \fi
-    \cftsetindents{#1}{0em}{2.3em}}
+      \fi
+      \cftsetindents{#1}{0em}{2.3em}}
 %    \end{macrocode}
 % The standard document classes do not print the chapter number
 % in captions if it is not greater than zero.
 %    \begin{macrocode}
-  {\ifx\chapter\@undefined\else
-    \ifx\KOMAScriptVersion\@undefined
-      \expandafter\renewcommand\expandafter{\csname the#1\endcsname}%
-        {\ifnum\c@chapter>\z@ \thechapter.\fi
-          \expandafter\@arabic\csname c@#1\endcsname}
-  \fi\fi}
+    {\ifx\chapter\@undefined\else
+      \ifx\KOMAScriptVersion\@undefined
+        \expandafter\renewcommand\expandafter{\csname the#1\endcsname}%
+          {\ifnum\c@chapter>\z@ \thechapter.\fi
+            \expandafter\@arabic\csname c@#1\endcsname}
+    \fi\fi}
+  }
 }%
 %    \end{macrocode}
 %\changes{v1.2}{2007/08/20}{Only in preamble}
