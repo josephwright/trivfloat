@@ -29,7 +29,7 @@
 %</driver>
 % \fi
 %
-% \CheckSum{218}
+% \CheckSum{239}
 %
 % \CharacterTable
 %  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
@@ -56,20 +56,21 @@
 %\changes{v1.2}{2007/08/20}{Improved emulation of default floats}
 %
 % \DoNotIndex{\@arabic,\@chapter,\@gobble,\@ifclassloaded,\@ne}
-% \DoNotIndex{\@onlypreamble,\@smemfront,\@smemmain,\@undefined}
-% \DoNotIndex{\addtocontents,\addtodef,\addvspace,\advance}
-% \DoNotIndex{\backmatter,\begingroup,\c@chapter,\cftsetindents}
-% \DoNotIndex{\chapter,\counterwithin,\counterwithout,\csname}
-% \DoNotIndex{\CurrentOption,\DeclareOption,\def,\edef,\else}
+% \DoNotIndex{\@onlypreamble,\@smemfront,\@smemmain,\@uclclist}
+% \DoNotIndex{\@undefined,\addtocontents,\addtodef,\addvspace}
+% \DoNotIndex{\advance,\backmatter,\begingroup,\c@chapter}
+% \DoNotIndex{\cftsetindents,\chapter,\counterwithin,\counterwithout}
+% \DoNotIndex{\csname,\CurrentOption,\DeclareOption,\def,\edef,\else}
 % \DoNotIndex{\endcsname,\endgroup,\expandafter,\fi,\floatname}
-% \DoNotIndex{\g@addto@macro,\ifartopt,\ifcase,\ifnum,\ifx}
-% \DoNotIndex{\insertchapterspace,\jobname,\KOMAScriptVersion}
+% \DoNotIndex{\g@addto@macro,\i,\ifartopt,\ifcase,\ifnum,\ifx}
+% \DoNotIndex{\insertchapterspace,\j,\jobname,\KOMAScriptVersion}
 % \DoNotIndex{\let,\listof,\MakeUppercase,\MessageBreak}
 % \DoNotIndex{\NeedsTeXFormat,\newcommand,\newcount,\newfloat}
 % \DoNotIndex{\newlistentry,\newlistof,\noexpand,\or,\PackageInfo}
 % \DoNotIndex{\PackageWarning,\ProcessOptions,\protect}
-% \DoNotIndex{\ProvidesPackage,\relax,\renewcommand,\RequirePackage}
-% \DoNotIndex{\setcounter,\thechapter,\x,\z@}
+% \DoNotIndex{\protected@edef,\ProvidesPackage,\relax,\renewcommand}
+% \DoNotIndex{\RequirePackage,\reserved@a,\reserved@b,\setcounter}
+% \DoNotIndex{\thechapter,\uppercase,\x,\z@,\DeclareRobustCommand}
 %
 % \title{Quick floats in LaTeX%
 %   \thanks{This file describes version \fileversion, last revised
@@ -211,7 +212,7 @@
 %    \begin{macrocode}
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{trivfloat}
-  [2007/08/21 v1.3 Quick floats in LaTeX]
+  [2007/08/22 v1.3a Quick floats in LaTeX]
 %    \end{macrocode}
 % |memoir| has its own \cmd{\newfloat} mechanism, and so |float| is
 % used only if |memoir| is not loaded.
@@ -301,20 +302,43 @@
   }%
 }%
 %    \end{macrocode}
-% \end{macro}
-% \end{macro}
+%\end{macro}
+%\end{macro}
+%\begin{macro}{\tfl@uppercase}
+%\changes{v1.3a}{2007/08/22}{New macro}
+% To get the correct kerning, a customised version of
+% \cmd{\MakeUppercase} is needed.  Normally you are not supposed to
+% use \cmd{\reserved@a} and \cmd{\reserved@b}, but the code here is a
+% very minor alteration of the LaTeX kernel code, so these macros are
+% retained. The use of \cmd{\DeclareRobustCommand} here is essential.
+%    \begin{macrocode}
+\DeclareRobustCommand\tfl@uppercase[1]{%
+  {%
+    \def\i{I}\def\j{J}%
+    \def\reserved@a##1##2{\let##1##2\reserved@a}%
+    \expandafter\reserved@a\@uclclist\reserved@b{\reserved@b\@gobble}%
+    \protected@edef\reserved@a{\uppercase{#1}}%
+%    \end{macrocode}
+% The change from the kernel version comes here.
+%    \begin{macrocode}
+  \expandafter}\reserved@a
+}%
+%    \end{macrocode}
+%\end{macro}
 %\begin{macro}{\tfl@upperfirst}
 %\changes{v1.2}{2007/08/20}{Made names change case correctly}
 %\changes{v1.3}{2007/08/21}{Replaces \cs{tfl@genname} and
 %  \cs{tfl@gennamea}}
 %\changes{v1.3}{2007/08/21}{New macro}
+%\changes{v1.3a}{2007/08/22}{Uses modified version of
+%  \cs{MakeUppercase}}
 % As suggested by Ulrich Diez, this is an improved method for making
 % case changes than the previous version (v1.2).  Notice that it does
 % mean that the user is responsible for the case of everything except
 % the first letter.
 %    \begin{macrocode}
 \def\tfl@upperfirst#1{%
-  \protect\@gobble\noexpand\MakeUppercase#1%
+  \protect\@gobble\noexpand\tfl@uppercase#1%
 }
 %    \end{macrocode}
 %\end{macro}
